@@ -1,11 +1,9 @@
 package mealy_moore_converter;
 
-import guru.nidi.graphviz.attribute.Label;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.model.Graph;
 import guru.nidi.graphviz.model.LinkSource;
-import guru.nidi.graphviz.model.Node;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -16,8 +14,6 @@ import java.util.Optional;
 import java.util.Scanner;
 
 import static guru.nidi.graphviz.model.Factory.graph;
-import static guru.nidi.graphviz.model.Factory.node;
-import static guru.nidi.graphviz.model.Link.to;
 
 class MealyToMooreConverter {
     private String PATH_TO_OUTPUT = "output";
@@ -33,7 +29,8 @@ class MealyToMooreConverter {
     }
 
     void printMealyToMooreGraph(List<MealyEdge> mealyEdges) {
-        List<LinkSource> mealySources = createMealyLinkSources(mealyEdges);
+        LinkSources linkSources = new LinkSources();
+        List<LinkSource> mealySources = linkSources.createMealyLinkSources(mealyEdges);
 
         Graph mealyGraph = graph("Mealy Graph")
             .directed()
@@ -49,7 +46,7 @@ class MealyToMooreConverter {
             e.printStackTrace();
         }
 
-        List<LinkSource> mooreSources = mealyToMoore(mealyEdges);
+        List<LinkSource> mooreSources = mealyToMoore(mealyEdges, linkSources);
 
         Graph mooreGraph = graph("Moore Graph")
             .directed()
@@ -126,16 +123,7 @@ class MealyToMooreConverter {
         return to.get();
     }
 
-    private List<LinkSource> createMealyLinkSources(List<MealyEdge> mealyEdges) {
-        List<LinkSource> sources = new ArrayList<>();
-        for (MealyEdge mealyEdge : mealyEdges) {
-            Label label = Label.of(mealyEdge.x + "/" + mealyEdge.y);
-            sources.add(node(mealyEdge.from.q).link(to(node(mealyEdge.to.q)).with(label)));
-        }
-        return sources;
-    }
-
-    private List<LinkSource> mealyToMoore(List<MealyEdge> mealyEdges) {
+    private List<LinkSource> mealyToMoore(List<MealyEdge> mealyEdges, LinkSources linkSources) {
         List<MooreEdge> mooreEdges = new ArrayList<>();
 
         int index = 0;
@@ -165,18 +153,6 @@ class MealyToMooreConverter {
             ++index;
         }
 
-        return createMooreLinkSources(mooreEdges);
+        return linkSources.createMooreLinkSources(mooreEdges);
     }
-
-    private List<LinkSource> createMooreLinkSources(List<MooreEdge> mooreEdges) {
-        List<LinkSource> sources = new ArrayList<>();
-        for (MooreEdge mooreEdge : mooreEdges) {
-            Label label = Label.of(mooreEdge.x);
-            Node from = node(mooreEdge.from.q).with("xlabel", mooreEdge.from.y);
-            Node to = node(mooreEdge.to.q).with("xlabel", mooreEdge.to.y);
-            sources.add(from.link(to(to).with(label)));
-        }
-        return sources;
-    }
-
 }

@@ -22,17 +22,6 @@ import static guru.nidi.graphviz.model.Link.to;
 class MealyToMooreConverter {
     private String PATH_TO_OUTPUT = "output";
 
-    private List<LinkSource> createMooreLinkSources(List<MooreEdge> mooreEdges) {
-        List<LinkSource> sources = new ArrayList<>();
-        for (MooreEdge mooreEdge : mooreEdges) {
-            Label label = Label.of(mooreEdge.x);
-            Node from = node(mooreEdge.from.q).with("xlabel", mooreEdge.from.y);
-            Node to = node(mooreEdge.to.q).with("xlabel", mooreEdge.to.y);
-            sources.add(from.link(to(to).with(label)));
-        }
-        return sources;
-    }
-
     List<MealyEdge> parseMealy(Scanner scanner, Integer inputsCount, Integer nodesCount) {
         ArrayList<MealyNode> mealyNodes = new ArrayList<>();
         ArrayList<MealyEdge> mealyEdges = new ArrayList<>();
@@ -42,28 +31,6 @@ class MealyToMooreConverter {
 
         return mealyEdges;
     }
-
-    private void fillMealyNodes(Integer nodesCount, List<MealyNode> mealyNodes) {
-        for (Integer i = 0; i < nodesCount; i++) {
-            MealyNode mealyNode = new MealyNode();
-
-            mealyNode.q = "s" + i;
-
-            mealyNodes.add(mealyNode);
-        }
-    }
-
-    private MealyNode findMealyNode(List<MealyNode> mealyNodes, String q) {
-        Optional<MealyNode> to = mealyNodes
-            .stream()
-            .filter(mealyNode -> mealyNode.q.equals(q))
-            .findFirst();
-        if (to.isEmpty()) {
-            throw new RuntimeException("Node " + q + " not found");
-        }
-        return to.get();
-    }
-
 
     void printMealyToMooreGraph(List<MealyEdge> mealyEdges) {
         List<LinkSource> mealySources = createMealyLinkSources(mealyEdges);
@@ -99,16 +66,6 @@ class MealyToMooreConverter {
         }
     }
 
-    private List<LinkSource> createMealyLinkSources(List<MealyEdge> mealyEdges) {
-        List<LinkSource> sources = new ArrayList<>();
-        for (MealyEdge mealyEdge : mealyEdges) {
-            Label label = Label.of(mealyEdge.x + "/" + mealyEdge.y);
-            sources.add(node(mealyEdge.from.q).link(to(node(mealyEdge.to.q)).with(label)));
-        }
-        return sources;
-    }
-
-
     void printMealyToMooreTable(Integer inputsCount, List<MealyEdge> mealyEdges) throws IOException {
         File output = new File(PATH_TO_OUTPUT + "/output.txt");
         try (FileWriter writer = new FileWriter(output)) {
@@ -123,6 +80,15 @@ class MealyToMooreConverter {
         }
     }
 
+    private void fillMealyNodes(Integer nodesCount, List<MealyNode> mealyNodes) {
+        for (Integer i = 0; i < nodesCount; i++) {
+            MealyNode mealyNode = new MealyNode();
+
+            mealyNode.q = "s" + i;
+
+            mealyNodes.add(mealyNode);
+        }
+    }
 
     private void fillMealyEdges(Scanner scanner,
                                 Integer inputsCount,
@@ -146,6 +112,27 @@ class MealyToMooreConverter {
                 mealyEdges.add(mealyEdge);
             }
         }
+    }
+
+
+    private MealyNode findMealyNode(List<MealyNode> mealyNodes, String q) {
+        Optional<MealyNode> to = mealyNodes
+            .stream()
+            .filter(mealyNode -> mealyNode.q.equals(q))
+            .findFirst();
+        if (to.isEmpty()) {
+            throw new RuntimeException("Node " + q + " not found");
+        }
+        return to.get();
+    }
+
+    private List<LinkSource> createMealyLinkSources(List<MealyEdge> mealyEdges) {
+        List<LinkSource> sources = new ArrayList<>();
+        for (MealyEdge mealyEdge : mealyEdges) {
+            Label label = Label.of(mealyEdge.x + "/" + mealyEdge.y);
+            sources.add(node(mealyEdge.from.q).link(to(node(mealyEdge.to.q)).with(label)));
+        }
+        return sources;
     }
 
     private List<LinkSource> mealyToMoore(List<MealyEdge> mealyEdges) {
@@ -180,4 +167,16 @@ class MealyToMooreConverter {
 
         return createMooreLinkSources(mooreEdges);
     }
+
+    private List<LinkSource> createMooreLinkSources(List<MooreEdge> mooreEdges) {
+        List<LinkSource> sources = new ArrayList<>();
+        for (MooreEdge mooreEdge : mooreEdges) {
+            Label label = Label.of(mooreEdge.x);
+            Node from = node(mooreEdge.from.q).with("xlabel", mooreEdge.from.y);
+            Node to = node(mooreEdge.to.q).with("xlabel", mooreEdge.to.y);
+            sources.add(from.link(to(to).with(label)));
+        }
+        return sources;
+    }
+
 }

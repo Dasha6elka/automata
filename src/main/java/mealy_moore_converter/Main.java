@@ -9,7 +9,7 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
-        File input = new File("moore_input_example.txt");
+        File input = new File("input.txt");
         try (FileInputStream inputStream = new FileInputStream(input)) {
             Scanner scanner = new Scanner(inputStream);
 
@@ -23,12 +23,12 @@ public class Main {
                 MooreToMealyConverter converter = new MooreToMealyConverter();
                 List<MooreEdge> mooreEdges = converter.parseMoore(scanner, inputsCount, nodesCount);
                 converter.printMooreToMealyGraph(mooreEdges);
-                converter.printMooreToMealyTable(inputsCount, mooreEdges);
+                converter.printMooreToMealyTable(nodesCount, mooreEdges);
             } else if (machineType.equals("mealy")) {
                 MealyToMooreConverter converter = new MealyToMooreConverter();
                 List<MealyEdge> mealyEdges = converter.parseMealy(scanner, inputsCount, nodesCount);
-                converter.printMealyToMooreGraph(mealyEdges);
-                converter.printMealyToMooreTable(inputsCount, mealyEdges);
+                List<MooreEdge> mooreEdges = converter.printMealyToMooreGraph(mealyEdges);
+                converter.printMealyToMooreTable(inputsCount, mooreEdges);
             }
         } catch (IOException ex) {
             ex.printStackTrace();

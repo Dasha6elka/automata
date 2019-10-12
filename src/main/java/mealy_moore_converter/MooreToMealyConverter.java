@@ -18,6 +18,8 @@ import static guru.nidi.graphviz.model.Factory.graph;
 class MooreToMealyConverter {
     private String PATH_TO_OUTPUT = "output";
 
+    LinkSources linkSources = new LinkSources();
+
     List<MooreEdge> parseMoore(Scanner scanner, Integer inputsCount, Integer nodesCount) {
         ArrayList<MooreNode> mooreNodes = new ArrayList<>();
         ArrayList<MooreEdge> mooreEdges = new ArrayList<>();
@@ -29,7 +31,6 @@ class MooreToMealyConverter {
     }
 
     void printMooreToMealyGraph(List<MooreEdge> mooreEdges) {
-        LinkSources linkSources = new LinkSources();
         List<LinkSource> mooreSources = linkSources.createMooreLinkSources(mooreEdges);
 
         Graph mooreGraph = graph("Moore Graph")
@@ -63,14 +64,16 @@ class MooreToMealyConverter {
         }
     }
 
-    void printMooreToMealyTable(Integer inputsCount, List<MooreEdge> mooreEdges) throws IOException {
+    void printMooreToMealyTable(Integer nodesCount, List<MooreEdge> mooreEdges) throws IOException {
         File output = new File(PATH_TO_OUTPUT + "/output.txt");
         try (FileWriter writer = new FileWriter(output)) {
-            Integer index = 0;
+            int index = 0;
             for (MooreEdge mooreEdge : mooreEdges) {
-                writer.append(mooreEdge.to.q).append(mooreEdge.to.y).append(" ");
-                if (index.equals(inputsCount)) {
+                writer.append(mooreEdge.to.q).append(mooreEdge.to.y);
+                if ((index + 1) % nodesCount == 0) {
                     writer.append("\n");
+                } else {
+                    writer.append(" ");
                 }
                 ++index;
             }
@@ -100,7 +103,7 @@ class MooreToMealyConverter {
             for (Integer j = 0; j < nodesCount; j++) {
                 MooreEdge mooreEdge = new MooreEdge();
 
-                mooreEdge.x = "x" + (i + 1);
+                mooreEdge.x = "x" + i;
 
                 String q = scanner.next().trim();
 

@@ -40,7 +40,7 @@ public class GraphPrinter {
             int index = 0;
             for (MealyEdge mealyEdge : mealyEdges) {
                 writer.append(mealyEdge.to.q).append(mealyEdge.y);
-                if ((index + 1) % inputsCount == 0) {
+                if ((index + 1) % (mealyEdges.size() / inputsCount) == 0) {
                     writer.append("\n");
                 } else {
                     writer.append(" ");

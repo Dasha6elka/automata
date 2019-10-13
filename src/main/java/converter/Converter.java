@@ -1,4 +1,9 @@
-package mealy_moore_converter;
+package converter;
+
+import lib.models.MealyEdge;
+import lib.converter.MealyToMooreConverter;
+import lib.models.MooreEdge;
+import lib.converter.MooreToMealyConverter;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -6,8 +11,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
 
-public class Main {
-
+public class Converter {
     public static void main(String[] args) {
         File input = new File("input.txt");
         try (FileInputStream inputStream = new FileInputStream(input)) {

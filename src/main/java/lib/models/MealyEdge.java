@@ -1,12 +1,12 @@
-package mealy_moore_converter;
+package lib.models;
 
 import java.util.Objects;
 
-class MealyEdge {
-    MealyNode from;
-    MealyNode to;
-    String x;
-    String y;
+public class MealyEdge {
+    public MealyNode from;
+    public MealyNode to;
+    public String x;
+    public String y;
 
     @Override
     public boolean equals(Object o) {

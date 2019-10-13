@@ -1,9 +1,14 @@
-package mealy_moore_converter;
+package lib.converter;
 
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.model.Graph;
 import guru.nidi.graphviz.model.LinkSource;
+import lib.graph.LinkSources;
+import lib.models.MealyEdge;
+import lib.models.MealyNode;
+import lib.models.MooreEdge;
+import lib.models.MooreNode;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -13,12 +18,12 @@ import java.util.stream.Collectors;
 
 import static guru.nidi.graphviz.model.Factory.graph;
 
-class MealyToMooreConverter {
+public class MealyToMooreConverter {
     private String PATH_TO_OUTPUT = "output";
 
     private LinkSources linkSources = new LinkSources();
 
-    List<MealyEdge> parseMealy(Scanner scanner, Integer inputsCount, Integer nodesCount) {
+    public List<MealyEdge> parseMealy(Scanner scanner, Integer inputsCount, Integer nodesCount) {
         ArrayList<MealyNode> mealyNodes = new ArrayList<>();
         ArrayList<MealyEdge> mealyEdges = new ArrayList<>();
 
@@ -28,7 +33,7 @@ class MealyToMooreConverter {
         return mealyEdges;
     }
 
-    List<MooreEdge> printMealyToMooreGraph(List<MealyEdge> mealyEdges) {
+    public List<MooreEdge> printMealyToMooreGraph(List<MealyEdge> mealyEdges) {
         List<LinkSource> mealySources = linkSources.createMealyLinkSources(mealyEdges);
 
         Graph mealyGraph = graph("Mealy Graph")
@@ -65,7 +70,7 @@ class MealyToMooreConverter {
         return mooreEdges;
     }
 
-    void printMealyToMooreTable(Integer inputsCount, List<MooreEdge> mooreEdges) throws IOException {
+    public void printMealyToMooreTable(Integer inputsCount, List<MooreEdge> mooreEdges) throws IOException {
         File output = new File(PATH_TO_OUTPUT + "/output.txt");
         var sortedMooreEdges = mooreEdges.stream().sorted((left, right) -> {
             int a = Integer.parseInt(left.x.substring(1));

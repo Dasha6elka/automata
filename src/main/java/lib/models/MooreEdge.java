@@ -1,11 +1,11 @@
-package mealy_moore_converter;
+package lib.models;
 
 import java.util.Objects;
 
-class MooreEdge {
-    MooreNode from;
-    MooreNode to;
-    String x;
+public class MooreEdge {
+    public MooreNode from;
+    public MooreNode to;
+    public String x;
 
     @Override
     public boolean equals(Object o) {

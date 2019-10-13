@@ -1,26 +1,28 @@
-package mealy_moore_converter;
+package lib.converter;
 
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.model.Graph;
 import guru.nidi.graphviz.model.LinkSource;
+import lib.graph.LinkSources;
+import lib.models.MealyEdge;
+import lib.models.MealyNode;
+import lib.models.MooreEdge;
+import lib.models.MooreNode;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Scanner;
+import java.util.*;
 
 import static guru.nidi.graphviz.model.Factory.graph;
 
-class MooreToMealyConverter {
+public class MooreToMealyConverter {
     private String PATH_TO_OUTPUT = "output";
 
-    LinkSources linkSources = new LinkSources();
+    private LinkSources linkSources = new LinkSources();
 
-    List<MooreEdge> parseMoore(Scanner scanner, Integer inputsCount, Integer nodesCount) {
+    public List<MooreEdge> parseMoore(Scanner scanner, Integer inputsCount, Integer nodesCount) {
         ArrayList<MooreNode> mooreNodes = new ArrayList<>();
         ArrayList<MooreEdge> mooreEdges = new ArrayList<>();
 
@@ -30,7 +32,7 @@ class MooreToMealyConverter {
         return mooreEdges;
     }
 
-    void printMooreToMealyGraph(List<MooreEdge> mooreEdges) {
+    public void printMooreToMealyGraph(List<MooreEdge> mooreEdges) {
         List<LinkSource> mooreSources = linkSources.createMooreLinkSources(mooreEdges);
 
         Graph mooreGraph = graph("Moore Graph")
@@ -64,7 +66,7 @@ class MooreToMealyConverter {
         }
     }
 
-    void printMooreToMealyTable(Integer nodesCount, List<MooreEdge> mooreEdges) throws IOException {
+    public void printMooreToMealyTable(Integer nodesCount, List<MooreEdge> mooreEdges) throws IOException {
         File output = new File(PATH_TO_OUTPUT + "/output.txt");
         try (FileWriter writer = new FileWriter(output)) {
             int index = 0;

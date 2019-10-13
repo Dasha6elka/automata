@@ -1,4 +1,4 @@
-package mealy_moore_converter;
+package lib.converter;
 
 import java.util.Objects;
 

@@ -1,8 +1,10 @@
-package mealy_moore_converter;
+package lib.graph;
 
 import guru.nidi.graphviz.attribute.Label;
 import guru.nidi.graphviz.model.LinkSource;
 import guru.nidi.graphviz.model.Node;
+import lib.models.MealyEdge;
+import lib.models.MooreEdge;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,8 +12,8 @@ import java.util.List;
 import static guru.nidi.graphviz.model.Factory.node;
 import static guru.nidi.graphviz.model.Link.to;
 
-class LinkSources {
-    List<LinkSource> createMooreLinkSources(List<MooreEdge> mooreEdges) {
+public class LinkSources {
+    public List<LinkSource> createMooreLinkSources(List<MooreEdge> mooreEdges) {
         List<LinkSource> sources = new ArrayList<>();
         for (MooreEdge mooreEdge : mooreEdges) {
             Label label = Label.of(mooreEdge.x);
@@ -22,7 +24,7 @@ class LinkSources {
         return sources;
     }
 
-    List<LinkSource> createMealyLinkSources(List<MealyEdge> mealyEdges) {
+    public List<LinkSource> createMealyLinkSources(List<MealyEdge> mealyEdges) {
         List<LinkSource> sources = new ArrayList<>();
         for (MealyEdge mealyEdge : mealyEdges) {
             Label label = Label.of(mealyEdge.x + "/" + mealyEdge.y);

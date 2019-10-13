@@ -1,9 +1,9 @@
-package mealy_moore_converter;
+package lib.models;
 
 import java.util.Objects;
 
-class MealyNode {
-    String q;
+public class MealyNode {
+    public String q;
 
     @Override
     public boolean equals(Object o) {

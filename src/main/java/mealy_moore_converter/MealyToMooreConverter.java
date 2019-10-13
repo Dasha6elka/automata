@@ -133,29 +133,6 @@ class MealyToMooreConverter {
     }
 
     private List<MooreEdge> mealyToMoore(List<MealyEdge> mealyEdges) {
-        class MooreState {
-            private String y;
-            private String q;
-
-            private MooreState(String y, String q) {
-                this.y = y;
-                this.q = q;
-            }
-
-            @Override
-            public boolean equals(Object o) {
-                if (this == o) return true;
-                if (!(o instanceof MooreState)) return false;
-                MooreState that = (MooreState) o;
-                return Objects.equals(y, that.y) &&
-                    Objects.equals(q, that.q);
-            }
-
-            @Override
-            public int hashCode() {
-                return Objects.hash(y, q);
-            }
-        }
 
         List<MooreEdge> mooreEdges = new ArrayList<>();
 
@@ -166,50 +143,17 @@ class MealyToMooreConverter {
 
         List<MooreNode> mooreNodes = new ArrayList<>();
 
-        var sortedUniqueMealyEdges = uniqueMealyEdges.stream().sorted((left, right) -> {
-            int a = Integer.parseInt(left.to.q.substring(1));
-            int b = Integer.parseInt(right.to.q.substring(1));
-            if (a > b) {
-                return 1;
-            } else if (a < b) {
-                return -1;
-            } else {
-                int c = Integer.parseInt(left.y.substring(1));
-                int d = Integer.parseInt(right.y.substring(1));
-                if (c > d) {
-                    return 1;
-                } else if (c < d) {
-                    return -1;
-                } else {
-                    return 0;
-                }
-            }
-        }).collect(Collectors.toList());
+        var sortedUniqueMealyEdges = sortedUniqueEdges(uniqueMealyEdges);
 
+        fillMooreNodes(stateToZ, zToState, mooreNodes, sortedUniqueMealyEdges);
+
+        fillMooreEdges(mealyEdges, mooreEdges, stateToZ, zToState, mooreNodes);
+
+        return mooreEdges;
+    }
+
+    private void fillMooreEdges(List<MealyEdge> mealyEdges, List<MooreEdge> mooreEdges, HashMap<MooreState, String> stateToZ, HashMap<String, MooreState> zToState, List<MooreNode> mooreNodes) {
         int index = 0;
-        for (MealyEdge uniqueMealyEdge : sortedUniqueMealyEdges) {
-            MealyNode mealyFrom = uniqueMealyEdge.to;
-            Optional<MealyEdge> mealyEdgeFrom = sortedUniqueMealyEdges
-                .stream()
-                .filter(mealyEdge -> mealyEdge.to.equals(mealyFrom))
-                .findFirst();
-            if (mealyEdgeFrom.isPresent()) {
-                MooreState state = new MooreState(uniqueMealyEdge.y, mealyFrom.q);
-                if (!stateToZ.containsKey(state)) {
-                    stateToZ.put(state, "z" + index);
-                    zToState.put("z" + index, state);
-                    index++;
-                }
-
-                MooreNode mooreNode = new MooreNode();
-                mooreNode.q = stateToZ.get(state);
-                mooreNode.y = uniqueMealyEdge.y;
-
-                mooreNodes.add(mooreNode);
-            }
-        }
-
-        index = 0;
         for (MooreNode mooreFrom : mooreNodes) {
             MooreState state = zToState.get(mooreFrom.q);
 
@@ -240,7 +184,52 @@ class MealyToMooreConverter {
             }
             index = 0;
         }
+    }
 
-        return mooreEdges;
+    private void fillMooreNodes(HashMap<MooreState, String> stateToZ, HashMap<String, MooreState> zToState, List<MooreNode> mooreNodes, List<MealyEdge> sortedUniqueMealyEdges) {
+        int index = 0;
+        for (MealyEdge uniqueMealyEdge : sortedUniqueMealyEdges) {
+            MealyNode mealyFrom = uniqueMealyEdge.to;
+            Optional<MealyEdge> mealyEdgeFrom = sortedUniqueMealyEdges
+                .stream()
+                .filter(mealyEdge -> mealyEdge.to.equals(mealyFrom))
+                .findFirst();
+            if (mealyEdgeFrom.isPresent()) {
+                MooreState state = new MooreState(uniqueMealyEdge.y, mealyFrom.q);
+                if (!stateToZ.containsKey(state)) {
+                    stateToZ.put(state, "z" + index);
+                    zToState.put("z" + index, state);
+                    index++;
+                }
+
+                MooreNode mooreNode = new MooreNode();
+                mooreNode.q = stateToZ.get(state);
+                mooreNode.y = uniqueMealyEdge.y;
+
+                mooreNodes.add(mooreNode);
+            }
+        }
+    }
+
+    private List<MealyEdge> sortedUniqueEdges(HashSet<MealyEdge> uniqueMealyEdges) {
+        return uniqueMealyEdges.stream().sorted((left, right) -> {
+            int a = Integer.parseInt(left.to.q.substring(1));
+            int b = Integer.parseInt(right.to.q.substring(1));
+            if (a > b) {
+                return 1;
+            } else if (a < b) {
+                return -1;
+            } else {
+                int c = Integer.parseInt(left.y.substring(1));
+                int d = Integer.parseInt(right.y.substring(1));
+                if (c > d) {
+                    return 1;
+                } else if (c < d) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            }
+        }).collect(Collectors.toList());
     }
 }

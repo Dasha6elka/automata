@@ -1,20 +1,20 @@
 package lib.minimization;
 
-import lib.models.MooreEdge;
-import lib.models.MooreNode;
+import lib.models.MealyEdge;
+import lib.models.MealyNode;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class MooreMinimization {
+public class MealyMinimization {
     private char nextLetterKey = 'A';
 
-    public List<MooreEdge> minimizeGraph(List<MooreEdge> mooreEdges) {
+    public List<MealyEdge> minimizeGraph(List<MealyEdge> mooreEdges) {
         var sortMooreEdges = sortEdges(mooreEdges);
-        HashSet<MooreNode> reachableNodes = new HashSet<>();
+        HashSet<MealyNode> reachableNodes = new HashSet<>();
 
-        for (MooreEdge v : sortMooreEdges) {
+        for (MealyEdge v : sortMooreEdges) {
             if (reachableNodes.isEmpty()) {
                 reachableNodes.add(v.from);
                 reachableNodes.add(v.to);
@@ -25,37 +25,38 @@ public class MooreMinimization {
             }
         }
 
-        Map<MooreNode, List<MooreNode>> table = new HashMap<>();
+        Map<MealyNode, List<MealyEdge>> table = new HashMap<>();
         reachableNodes.forEach(mooreNode -> {
             var reachableEdges = mooreEdges
                 .stream()
                 .filter(mooreEdge -> mooreEdge.from.equals(mooreNode))
-                .map(mooreEdge -> mooreEdge.to)
                 .collect(Collectors.toList());
             table.put(mooreNode, reachableEdges);
         });
-
-        Map<String, String> groupedByY = new HashMap<>();
-        Map<String, List<MooreNode>> groupedByKey = new HashMap<>();
+        Map<List<String>, String> groupedByY = new HashMap<>();
+        Map<String, List<MealyNode>> groupedByKey = new HashMap<>();
         AtomicInteger index = new AtomicInteger();
 
         table
-            .keySet()
-            .forEach(mooreNode -> {
+            .forEach((tableKey, tableValue) -> {
                 String value;
-                if (!groupedByY.containsKey(mooreNode.y)) {
+                List<String> key = tableValue
+                    .stream()
+                    .map(mealyEdge -> mealyEdge.y)
+                    .collect(Collectors.toList());
+                if (!groupedByY.containsKey(key)) {
                     value = String.valueOf(nextLetterKey) + index.getAndIncrement();
                 } else {
-                    value = groupedByY.get(mooreNode.y);
+                    value = groupedByY.get(key);
                 }
-                groupedByY.put(mooreNode.y, value);
+                groupedByY.put(key, value);
                 if (!groupedByKey.containsKey(value)) {
-                    ArrayList<MooreNode> list = new ArrayList<>();
-                    list.add(mooreNode);
+                    ArrayList<MealyNode> list = new ArrayList<>();
+                    list.add(tableKey);
                     groupedByKey.put(value, list);
                 } else {
                     var list = groupedByKey.get(value);
-                    list.add(mooreNode);
+                    list.add(tableKey);
                     groupedByKey.put(value, list);
                 }
             });
@@ -67,14 +68,15 @@ public class MooreMinimization {
             currSize = groupKeysDeep(table, groupedByKey);
         }
 
-        List<MooreEdge> resultMooreEdges = new ArrayList<>();
+        List<MealyEdge> resultMooreEdges = new ArrayList<>();
         table.forEach((mooreNode, mooreNodes) -> {
             index.set(0);
-            mooreNodes.forEach(childMooreNode -> {
-                MooreEdge mooreEdge = new MooreEdge();
+            mooreNodes.forEach(childMooreEdge -> {
+                MealyEdge mooreEdge = new MealyEdge();
                 mooreEdge.from = mooreNode;
-                mooreEdge.to = childMooreNode;
+                mooreEdge.to = childMooreEdge.to;
                 mooreEdge.x = "x" + index.getAndIncrement();
+                mooreEdge.y = childMooreEdge.y;
 
                 resultMooreEdges.add(mooreEdge);
             });
@@ -83,8 +85,8 @@ public class MooreMinimization {
         return resultMooreEdges;
     }
 
-    private int groupKeysDeep(Map<MooreNode, List<MooreNode>> table,
-                              Map<String, List<MooreNode>> groupedByKey) {
+    private int groupKeysDeep(Map<MealyNode, List<MealyEdge>> table,
+                              Map<String, List<MealyNode>> groupedByKey) {
         nextLetterKey++;
         groupedByKey.clear();
         AtomicInteger index = new AtomicInteger();
@@ -94,7 +96,7 @@ public class MooreMinimization {
             .forEach(mooreNode -> {
                 String value = String.valueOf(nextLetterKey) + index.getAndIncrement();
                 if (!groupedByKey.containsKey(value)) {
-                    ArrayList<MooreNode> list = new ArrayList<>();
+                    ArrayList<MealyNode> list = new ArrayList<>();
                     list.add(mooreNode);
                     groupedByKey.put(value, list);
                 } else {
@@ -107,9 +109,9 @@ public class MooreMinimization {
         groupedByKey.forEach((key, nodes) -> {
             nodes.forEach(mooreNode -> {
                 table.forEach((tableNode, mooreNodes) -> {
-                    mooreNodes.forEach(cellNode -> {
-                        if (cellNode.equals(mooreNode)) {
-                            cellNode.q = key;
+                    mooreNodes.forEach(cellEdge -> {
+                        if (cellEdge.equals(mooreNode)) {
+                            cellEdge.to.q = key;
                         }
                     });
                 });
@@ -119,11 +121,25 @@ public class MooreMinimization {
         return groupedByKey.size();
     }
 
-    private List<MooreEdge> sortEdges(List<MooreEdge> mooreEdges) {
+    private List<MealyEdge> sortEdges(List<MealyEdge> mooreEdges) {
         return mooreEdges.stream().sorted((left, right) -> {
-            int a = Integer.parseInt(left.from.q.substring(1));
-            int b = Integer.parseInt(right.from.q.substring(1));
-            return Integer.compare(a, b);
+            int a = Integer.parseInt(left.to.q.substring(1));
+            int b = Integer.parseInt(right.to.q.substring(1));
+            if (a > b) {
+                return 1;
+            } else if (a < b) {
+                return -1;
+            } else {
+                int c = Integer.parseInt(left.y.substring(1));
+                int d = Integer.parseInt(right.y.substring(1));
+                if (c > d) {
+                    return 1;
+                } else if (c < d) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            }
         }).collect(Collectors.toList());
     }
 }

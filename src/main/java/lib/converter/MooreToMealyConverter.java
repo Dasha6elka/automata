@@ -1,28 +1,20 @@
 package lib.converter;
 
-import guru.nidi.graphviz.engine.Format;
-import guru.nidi.graphviz.engine.Graphviz;
-import guru.nidi.graphviz.model.Graph;
-import guru.nidi.graphviz.model.LinkSource;
-import lib.graph.LinkSources;
 import lib.models.MealyEdge;
 import lib.models.MealyNode;
 import lib.models.MooreEdge;
 import lib.models.MooreNode;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
-
-import static guru.nidi.graphviz.model.Factory.graph;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Scanner;
 
 public class MooreToMealyConverter {
-    private String PATH_TO_OUTPUT = "output";
-
-    private LinkSources linkSources = new LinkSources();
-
-    public List<MooreEdge> parseMoore(Scanner scanner, Integer inputsCount, Integer nodesCount) {
+    public List<MooreEdge> parseMoore(Scanner scanner,
+                                      Integer inputsCount,
+                                      Integer nodesCount) throws IOException {
         ArrayList<MooreNode> mooreNodes = new ArrayList<>();
         ArrayList<MooreEdge> mooreEdges = new ArrayList<>();
 
@@ -30,56 +22,6 @@ public class MooreToMealyConverter {
         fillMooreEdges(scanner, inputsCount, nodesCount, mooreNodes, mooreEdges);
 
         return mooreEdges;
-    }
-
-    public void printMooreToMealyGraph(List<MooreEdge> mooreEdges) {
-        List<LinkSource> mooreSources = linkSources.createMooreLinkSources(mooreEdges);
-
-        Graph mooreGraph = graph("Moore Graph")
-            .directed()
-            .with(mooreSources);
-
-        try {
-            Graphviz
-                .fromGraph(mooreGraph)
-                .width(1024)
-                .render(Format.PNG)
-                .toFile(new File(PATH_TO_OUTPUT + "/moore-to-mealy/moore.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        List<LinkSource> mealySources = mooreToMealy(mooreEdges, linkSources);
-
-        Graph mealyGraph = graph("Mealy Graph")
-            .directed()
-            .with(mealySources);
-
-        try {
-            Graphviz
-                .fromGraph(mealyGraph)
-                .width(1024)
-                .render(Format.PNG)
-                .toFile(new File(PATH_TO_OUTPUT + "/moore-to-mealy/mealy.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void printMooreToMealyTable(Integer nodesCount, List<MooreEdge> mooreEdges) throws IOException {
-        File output = new File(PATH_TO_OUTPUT + "/output.txt");
-        try (FileWriter writer = new FileWriter(output)) {
-            int index = 0;
-            for (MooreEdge mooreEdge : mooreEdges) {
-                writer.append(mooreEdge.to.q).append(mooreEdge.to.y);
-                if ((index + 1) % nodesCount == 0) {
-                    writer.append("\n");
-                } else {
-                    writer.append(" ");
-                }
-                ++index;
-            }
-        }
     }
 
     private void fillMooreNodes(Scanner scanner, Integer nodesCount, List<MooreNode> mooreNodes) {
@@ -100,7 +42,7 @@ public class MooreToMealyConverter {
                                 Integer inputsCount,
                                 Integer nodesCount,
                                 List<MooreNode> mooreNodes,
-                                List<MooreEdge> mooreEdges) {
+                                List<MooreEdge> mooreEdges) throws IOException {
         for (Integer i = 0; i < inputsCount; i++) {
             for (Integer j = 0; j < nodesCount; j++) {
                 MooreEdge mooreEdge = new MooreEdge();
@@ -117,19 +59,19 @@ public class MooreToMealyConverter {
         }
     }
 
-    private MooreNode findMooreNode(List<MooreNode> mooreNodes, String q) {
+    private MooreNode findMooreNode(List<MooreNode> mooreNodes, String q) throws IOException {
         Optional<MooreNode> to = mooreNodes
             .stream()
             .filter(mooreNode -> mooreNode.q.contains(q))
             .findFirst();
 
         if (to.isEmpty()) {
-            throw new RuntimeException("Node " + " to not found");
+            throw new IOException("Node " + " to not found");
         }
         return to.get();
     }
 
-    private List<LinkSource> mooreToMealy(List<MooreEdge> mooreEdges, LinkSources linkSources) {
+    public List<MealyEdge> mooreToMealy(List<MooreEdge> mooreEdges) {
         List<MealyEdge> mealyEdges = new ArrayList<>();
 
         for (MooreEdge mooreEdge : mooreEdges) {
@@ -148,6 +90,6 @@ public class MooreToMealyConverter {
             mealyEdges.add(mealyEdge);
         }
 
-        return linkSources.createMealyLinkSources(mealyEdges);
+        return mealyEdges;
     }
 }

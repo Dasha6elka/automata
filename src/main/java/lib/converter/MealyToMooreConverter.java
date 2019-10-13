@@ -1,29 +1,18 @@
 package lib.converter;
 
-import guru.nidi.graphviz.engine.Format;
-import guru.nidi.graphviz.engine.Graphviz;
-import guru.nidi.graphviz.model.Graph;
-import guru.nidi.graphviz.model.LinkSource;
-import lib.graph.LinkSources;
 import lib.models.MealyEdge;
 import lib.models.MealyNode;
 import lib.models.MooreEdge;
 import lib.models.MooreNode;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static guru.nidi.graphviz.model.Factory.graph;
-
 public class MealyToMooreConverter {
-    private String PATH_TO_OUTPUT = "output";
-
-    private LinkSources linkSources = new LinkSources();
-
-    public List<MealyEdge> parseMealy(Scanner scanner, Integer inputsCount, Integer nodesCount) {
+    public List<MealyEdge> parseMealy(Scanner scanner,
+                                      Integer inputsCount,
+                                      Integer nodesCount) throws IOException {
         ArrayList<MealyNode> mealyNodes = new ArrayList<>();
         ArrayList<MealyEdge> mealyEdges = new ArrayList<>();
 
@@ -31,64 +20,6 @@ public class MealyToMooreConverter {
         fillMealyEdges(scanner, inputsCount, nodesCount, mealyNodes, mealyEdges);
 
         return mealyEdges;
-    }
-
-    public List<MooreEdge> printMealyToMooreGraph(List<MealyEdge> mealyEdges) {
-        List<LinkSource> mealySources = linkSources.createMealyLinkSources(mealyEdges);
-
-        Graph mealyGraph = graph("Mealy Graph")
-            .directed()
-            .with(mealySources);
-
-        try {
-            Graphviz
-                .fromGraph(mealyGraph)
-                .width(1024)
-                .render(Format.PNG)
-                .toFile(new File(PATH_TO_OUTPUT + "/mealy-to-more/mealy.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        List<MooreEdge> mooreEdges = mealyToMoore(mealyEdges);
-        List<LinkSource> mooreSources = linkSources.createMooreLinkSources(mooreEdges);
-
-        Graph mooreGraph = graph("Moore Graph")
-            .directed()
-            .with(mooreSources);
-
-        try {
-            Graphviz
-                .fromGraph(mooreGraph)
-                .width(1024)
-                .render(Format.PNG)
-                .toFile(new File(PATH_TO_OUTPUT + "/mealy-to-more/moore.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return mooreEdges;
-    }
-
-    public void printMealyToMooreTable(Integer inputsCount, List<MooreEdge> mooreEdges) throws IOException {
-        File output = new File(PATH_TO_OUTPUT + "/output.txt");
-        var sortedMooreEdges = mooreEdges.stream().sorted((left, right) -> {
-            int a = Integer.parseInt(left.x.substring(1));
-            int b = Integer.parseInt(right.x.substring(1));
-            return Integer.compare(a, b);
-        }).collect(Collectors.toList());
-        try (FileWriter writer = new FileWriter(output)) {
-            int index = 0;
-            for (MooreEdge mooreEdge : sortedMooreEdges) {
-                writer.append(mooreEdge.to.q);
-                if ((index + 1) % (mooreEdges.size() / inputsCount) == 0) {
-                    writer.append("\n");
-                } else {
-                    writer.append(" ");
-                }
-                ++index;
-            }
-        }
     }
 
     private void fillMealyNodes(Integer nodesCount, List<MealyNode> mealyNodes) {
@@ -105,7 +36,7 @@ public class MealyToMooreConverter {
                                 Integer inputsCount,
                                 Integer nodesCount,
                                 List<MealyNode> mealyNodes,
-                                List<MealyEdge> mealyEdges) {
+                                List<MealyEdge> mealyEdges) throws IOException {
         var delimiter = scanner.delimiter();
         for (Integer i = 0; i < inputsCount; i++) {
             for (Integer j = 0; j < nodesCount; j++) {
@@ -126,18 +57,18 @@ public class MealyToMooreConverter {
     }
 
 
-    private MealyNode findMealyNode(List<MealyNode> mealyNodes, String q) {
+    private MealyNode findMealyNode(List<MealyNode> mealyNodes, String q) throws IOException {
         Optional<MealyNode> to = mealyNodes
             .stream()
             .filter(mealyNode -> mealyNode.q.equals(q))
             .findFirst();
         if (to.isEmpty()) {
-            throw new RuntimeException("Node " + q + " not found");
+            throw new IOException("Node " + q + " not found");
         }
         return to.get();
     }
 
-    private List<MooreEdge> mealyToMoore(List<MealyEdge> mealyEdges) {
+    public List<MooreEdge> mealyToMoore(List<MealyEdge> mealyEdges) {
 
         List<MooreEdge> mooreEdges = new ArrayList<>();
 
@@ -157,7 +88,11 @@ public class MealyToMooreConverter {
         return mooreEdges;
     }
 
-    private void fillMooreEdges(List<MealyEdge> mealyEdges, List<MooreEdge> mooreEdges, HashMap<MooreState, String> stateToZ, HashMap<String, MooreState> zToState, List<MooreNode> mooreNodes) {
+    private void fillMooreEdges(List<MealyEdge> mealyEdges,
+                                List<MooreEdge> mooreEdges,
+                                HashMap<MooreState, String> stateToZ,
+                                HashMap<String, MooreState> zToState,
+                                List<MooreNode> mooreNodes) {
         int index = 0;
         for (MooreNode mooreFrom : mooreNodes) {
             MooreState state = zToState.get(mooreFrom.q);
@@ -191,7 +126,10 @@ public class MealyToMooreConverter {
         }
     }
 
-    private void fillMooreNodes(HashMap<MooreState, String> stateToZ, HashMap<String, MooreState> zToState, List<MooreNode> mooreNodes, List<MealyEdge> sortedUniqueMealyEdges) {
+    private void fillMooreNodes(HashMap<MooreState, String> stateToZ,
+                                HashMap<String, MooreState> zToState,
+                                List<MooreNode> mooreNodes,
+                                List<MealyEdge> sortedUniqueMealyEdges) {
         int index = 0;
         for (MealyEdge uniqueMealyEdge : sortedUniqueMealyEdges) {
             MealyNode mealyFrom = uniqueMealyEdge.to;

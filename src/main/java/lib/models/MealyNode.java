@@ -2,7 +2,7 @@ package lib.models;
 
 import java.util.Objects;
 
-public class MealyNode {
+public class MealyNode implements Comparable<MealyNode> {
     public String q;
 
     @Override
@@ -16,5 +16,17 @@ public class MealyNode {
     @Override
     public int hashCode() {
         return Objects.hash(q);
+    }
+
+    @Override
+    public MealyNode clone() {
+        var node = new MealyNode();
+        node.q = q;
+        return node;
+    }
+
+    @Override
+    public int compareTo(MealyNode o) {
+        return q.compareTo(o.q);
     }
 }

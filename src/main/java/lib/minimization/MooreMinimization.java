@@ -1,15 +1,14 @@
 package lib.minimization;
 
-import lib.models.FullCheckMealyEdge;
-import lib.models.MealyEdge;
-import lib.models.MealyNode;
+import lib.models.MooreEdge;
+import lib.models.MooreNode;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-public class MealyMinimization {
+public class MooreMinimization {
     private final Comparator<String> cmp = (l, r) -> {
         int a = Integer.parseInt(l.substring(1));
         int b = Integer.parseInt(r.substring(1));
@@ -18,16 +17,15 @@ public class MealyMinimization {
 
     private char letter = 'a';
 
-    public List<MealyEdge> minimizeGraph(List<MealyEdge> edges, int cnt) {
-        List<MealyEdgeEq> converted = toMealyEdgeEqs(edges);
-        List<MealyNode> nodes = getSortedNodes(converted);
+    public List<MooreEdge> minimizeGraph(List<MooreEdge> edges, int cnt) {
+        List<MooreNode> nodes = getSortedNodes(edges);
 
-        var sources = new TreeMap<MealyNode, List<MealyEdgeEq>>();
+        var sources = new TreeMap<MooreNode, List<MooreEdge>>();
 
-        fillSources(converted, nodes, sources);
+        fillSources(edges, nodes, sources);
 
-        var y = new LinkedHashMap<List<String>, String>();
-        var prev = new TreeMap<String, Map<String, List<MealyNode>>>(cmp);
+        var y = new LinkedHashMap<String, String>();
+        var prev = new TreeMap<String, Map<String, List<MooreNode>>>(cmp);
 
         var index = new AtomicInteger();
 
@@ -45,30 +43,29 @@ public class MealyMinimization {
             currSize = curr.size();
         }
 
-        var result = new LinkedList<MealyEdgeEq>();
+        var result = new LinkedList<MooreEdge>();
 
         leaveOnlyFirstValues(curr);
 
         restoreEdgesFromSources(sources, index, curr, result);
 
-        LinkedList<MealyEdge> ordered = calculateCorrectOrder(cnt, result);
+        LinkedList<MooreEdge> ordered = calculateCorrectOrder(cnt, result);
 
-        return toMealyEdge(ordered);
+        return toMooreEdge(ordered);
     }
 
-    private List<MealyEdge> toMealyEdge(List<MealyEdge> ordered) {
-        return ordered.stream().map(mealyEdge -> {
-            var edge = new MealyEdge();
-            edge.to = mealyEdge.to;
-            edge.from = mealyEdge.from;
-            edge.y = mealyEdge.y;
-            edge.x = mealyEdge.x;
+    private List<MooreEdge> toMooreEdge(List<MooreEdge> ordered) {
+        return ordered.stream().map(mooreEdge -> {
+            var edge = new MooreEdge();
+            edge.to = mooreEdge.to;
+            edge.from = mooreEdge.from;
+            edge.x = mooreEdge.x;
             return edge;
         }).collect(Collectors.toList());
     }
 
-    private LinkedList<MealyEdge> calculateCorrectOrder(int cnt, List<MealyEdgeEq> result) {
-        var list = new LinkedList<MealyEdge>();
+    private LinkedList<MooreEdge> calculateCorrectOrder(int cnt, List<MooreEdge> result) {
+        var list = new LinkedList<MooreEdge>();
         var i = 0;
         while (i != cnt) {
             for (int j = 0; j < result.size(); j++) {
@@ -81,29 +78,29 @@ public class MealyMinimization {
         return list;
     }
 
-    private void restoreEdgesFromSources(Map<MealyNode, List<MealyEdgeEq>> sources,
+    private void restoreEdgesFromSources(Map<MooreNode, List<MooreEdge>> sources,
                                          AtomicInteger index,
-                                         Map<String, Map<String, List<MealyNode>>> curr,
-                                         List<MealyEdgeEq> result) {
+                                         Map<String, Map<String, List<MooreNode>>> curr,
+                                         List<MooreEdge> result) {
         for (var entry : curr.entrySet()) {
             var currKey = entry.getKey();
             var map = entry.getValue();
             for (var e : sources.entrySet()) {
                 var node = e.getKey();
                 var list = e.getValue();
-                list.forEach(mealyEdge -> {
+                list.forEach(mooreEdge -> {
                     index.set(0);
                     for (var mapEntry : map.entrySet()) {
                         var mapKey = mapEntry.getKey();
                         var nodes = mapEntry.getValue();
-                        for (var mealyNode : nodes) {
+                        for (var mooreNode : nodes) {
                             if (mapKey.equals(node.q)) {
-                                var edge = new MealyEdgeEq();
-                                var from = new MealyNode();
+                                var edge = new MooreEdge();
+                                var from = new MooreNode();
                                 from.q = currKey;
-                                edge.y = list.get(index.get()).y;
+                                from.y = mooreNode.y;
                                 edge.from = from;
-                                edge.to = mealyNode;
+                                edge.to = mooreNode;
                                 edge.x = "x" + index.getAndIncrement();
                                 if (!result.contains(edge)) {
                                     result.add(edge);
@@ -116,36 +113,36 @@ public class MealyMinimization {
         }
     }
 
-    private void leaveOnlyFirstValues(Map<String, Map<String, List<MealyNode>>> curr) {
+    private void leaveOnlyFirstValues(Map<String, Map<String, List<MooreNode>>> curr) {
         for (var stringMapEntry : curr.entrySet()) {
             var firstKey = stringMapEntry.getValue().keySet().stream().findFirst().orElseThrow();
             var firstValue = stringMapEntry.getValue().get(firstKey);
-            var map = new TreeMap<String, List<MealyNode>>();
+            var map = new TreeMap<String, List<MooreNode>>();
             map.put(firstKey, firstValue);
             stringMapEntry.setValue(map);
         }
     }
 
-    private void applyGroupingToMap(Map<MealyNode, List<MealyEdgeEq>> sources,
-                                    Map<String, Map<String, List<MealyNode>>> map) {
+    private void applyGroupingToMap(Map<MooreNode, List<MooreEdge>> sources,
+                                    Map<String, Map<String, List<MooreNode>>> map) {
         for (var entry : map.entrySet()) {
             var nodesList = entry.getValue();
             for (var e : nodesList.entrySet()) {
                 var nodeKey = e.getKey();
-                var mealyNodeList = e.getValue();
+                var mooreNodeList = e.getValue();
                 for (var mapEntry : sources.entrySet()) {
-                    var mealyNode = mapEntry.getKey();
-                    var mealyEdgesList = mapEntry.getValue();
-                    if (mealyNode.q.equals(nodeKey)) {
-                        for (var mealyEdge : mealyEdgesList) {
-                            int i = Integer.parseInt(mealyEdge.to.q.substring(1));
+                    var mooreNode = mapEntry.getKey();
+                    var mooreEdgeList = mapEntry.getValue();
+                    if (mooreNode.q.equals(nodeKey)) {
+                        for (var mooreEdge : mooreEdgeList) {
+                            int i = Integer.parseInt(mooreEdge.to.q.substring(1));
                             for (var stringMapEntry : map.entrySet()) {
                                 var key = stringMapEntry.getKey();
                                 var value = stringMapEntry.getValue();
                                 if (value.containsKey("s" + i)) {
-                                    var node = new MealyNode(mealyNode);
+                                    var node = new MooreNode(mooreNode);
                                     node.q = key;
-                                    mealyNodeList.add(node);
+                                    mooreNodeList.add(node);
                                 }
                             }
                         }
@@ -155,18 +152,14 @@ public class MealyMinimization {
         }
     }
 
-    private void performInitialGrouping(Map<MealyNode, List<MealyEdgeEq>> sources,
-                                        Map<List<String>, String> y,
-                                        Map<String, Map<String, List<MealyNode>>> prev,
+    private void performInitialGrouping(Map<MooreNode, List<MooreEdge>> sources,
+                                        Map<String, String> y,
+                                        Map<String, Map<String, List<MooreNode>>> prev,
                                         AtomicInteger index) {
         for (var entry : sources.entrySet()) {
             var tableKey = entry.getKey();
-            var tableValue = entry.getValue();
             String value;
-            var key = tableValue
-                .stream()
-                .map(mealyEdge -> mealyEdge.y)
-                .collect(Collectors.toList());
+            var key = tableKey.y;
             if (!y.containsKey(key)) {
                 value = String.valueOf(letter) + index.getAndIncrement();
             } else {
@@ -174,7 +167,7 @@ public class MealyMinimization {
             }
             y.put(key, value);
             if (!prev.containsKey(value)) {
-                var map = new TreeMap<String, List<MealyNode>>(cmp);
+                var map = new TreeMap<String, List<MooreNode>>(cmp);
                 map.put(tableKey.q, new LinkedList<>());
                 prev.put(value, map);
             } else {
@@ -186,9 +179,9 @@ public class MealyMinimization {
         }
     }
 
-    private void fillSources(List<MealyEdgeEq> edges,
-                             List<MealyNode> nodes,
-                             Map<MealyNode, List<MealyEdgeEq>> sources) {
+    private void fillSources(List<MooreEdge> edges,
+                             List<MooreNode> nodes,
+                             Map<MooreNode, List<MooreEdge>> sources) {
         for (var node : nodes) {
             var list = edges
                 .stream()
@@ -198,11 +191,11 @@ public class MealyMinimization {
         }
     }
 
-    private List<MealyNode> getSortedNodes(List<MealyEdgeEq> edges) {
+    private List<MooreNode> getSortedNodes(List<MooreEdge> edges) {
         var sortMooreEdges = getSortEdges(edges);
-        List<MealyNode> nodes = new LinkedList<>();
+        List<MooreNode> nodes = new LinkedList<>();
 
-        for (MealyEdgeEq v : sortMooreEdges) {
+        for (MooreEdge v : sortMooreEdges) {
             if (!nodes.contains(v.from)) {
                 nodes.add(v.from);
             }
@@ -214,21 +207,10 @@ public class MealyMinimization {
         return nodes;
     }
 
-    private List<MealyEdgeEq> toMealyEdgeEqs(List<MealyEdge> edges) {
-        return edges.stream().map(mealyEdge -> {
-            var edge = new MealyEdgeEq();
-            edge.to = mealyEdge.to;
-            edge.from = mealyEdge.from;
-            edge.y = mealyEdge.y;
-            edge.x = mealyEdge.x;
-            return edge;
-        }).collect(Collectors.toList());
-    }
-
-    private Map<String, Map<String, List<MealyNode>>> deep(Map<MealyNode, List<MealyEdgeEq>> sources,
-                                                           Map<String, Map<String, List<MealyNode>>> currGroupedByKey,
+    private Map<String, Map<String, List<MooreNode>>> deep(Map<MooreNode, List<MooreEdge>> sources,
+                                                           Map<String, Map<String, List<MooreNode>>> currGroupedByKey,
                                                            AtomicInteger index) {
-        var next = new TreeMap<String, Map<String, List<MealyNode>>>(cmp);
+        var next = new TreeMap<String, Map<String, List<MooreNode>>>(cmp);
 
         letter++;
 
@@ -250,7 +232,7 @@ public class MealyMinimization {
                 for (var entry : nodesMap.entrySet()) {
                     var key = entry.getKey();
                     var nodes = entry.getValue();
-                    var map = new TreeMap<String, List<MealyNode>>(cmp);
+                    var map = new TreeMap<String, List<MooreNode>>(cmp);
                     map.put(key, nodes);
                     next.put(ref.key, map);
                 }
@@ -288,7 +270,7 @@ public class MealyMinimization {
                             }
                         }
                         if (in.get().equals("")) {
-                            var map = new TreeMap<String, List<MealyNode>>(cmp);
+                            var map = new TreeMap<String, List<MooreNode>>(cmp);
                             map.put(prevMapKey, prevMapList);
                             next.put(ref.key, map);
                         }
@@ -307,7 +289,7 @@ public class MealyMinimization {
                             map.put(prevMapKey, prevMapList);
                             map.put(currMapKey, currMapList);
                         } else {
-                            var map = new TreeMap<String, List<MealyNode>>(cmp);
+                            var map = new TreeMap<String, List<MooreNode>>(cmp);
                             if (i.getAndIncrement() == 0) {
                                 map.put(currMapKey, currMapList);
                                 if (currMapList.equals(prevMapList)) {
@@ -341,22 +323,11 @@ public class MealyMinimization {
         return next;
     }
 
-    private List<MealyEdgeEq> getSortEdges(List<MealyEdgeEq> edges) {
+    private List<MooreEdge> getSortEdges(List<MooreEdge> edges) {
         return edges.stream().sorted((l, r) -> {
             int a = Integer.parseInt(l.to.q.substring(1));
             int b = Integer.parseInt(r.to.q.substring(1));
-            if (a > b) {
-                return 1;
-            } else if (a < b) {
-                return -1;
-            } else {
-                int c = Integer.parseInt(l.y.substring(1));
-                int d = Integer.parseInt(r.y.substring(1));
-                return Integer.compare(c, d);
-            }
+            return Integer.compare(a, b);
         }).collect(Collectors.toList());
-    }
-
-    private static class MealyEdgeEq extends FullCheckMealyEdge {
     }
 }

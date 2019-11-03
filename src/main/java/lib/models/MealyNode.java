@@ -5,6 +5,13 @@ import java.util.Objects;
 public class MealyNode implements Comparable<MealyNode> {
     public String q;
 
+    public MealyNode() {
+    }
+
+    public MealyNode(MealyNode node) {
+        this.q = node.q;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -16,13 +23,6 @@ public class MealyNode implements Comparable<MealyNode> {
     @Override
     public int hashCode() {
         return Objects.hash(q);
-    }
-
-    @Override
-    public MealyNode clone() {
-        var node = new MealyNode();
-        node.q = q;
-        return node;
     }
 
     @Override

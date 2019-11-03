@@ -1,9 +1,11 @@
 package minimization;
 
 import lib.converter.MealyToMooreConverter;
+import lib.converter.MooreToMealyConverter;
 import lib.graph.GraphPrinter;
 import lib.graph.LinkSources;
 import lib.minimization.MealyMinimization;
+import lib.minimization.MooreMinimization;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,7 +30,13 @@ public class Minimization {
             var machineType = scanner.next().trim();
 
             if (machineType.equals("moore")) {
-                // TODO: do code
+                var mooreMinimization = new MooreMinimization();
+                var converter = new MooreToMealyConverter();
+                var mooreEdges = converter.parseMoore(scanner, inputsCount, nodesCount);
+                var minimizedMooreEdges = mooreMinimization.minimizeGraph(mooreEdges, inputsCount);
+                var mooreLinkSources = linkSources.createMooreLinkSources(minimizedMooreEdges);
+                graphPrinter.printGraph("Minimized Moore Graph", mooreLinkSources, PATH_TO_OUTPUT + "/moore.png");
+                graphPrinter.printMooreTable(inputsCount, minimizedMooreEdges, PATH_TO_OUTPUT + "/output.txt");
             } else if (machineType.equals("mealy")) {
                 var mealyMinimization = new MealyMinimization();
                 var converter = new MealyToMooreConverter();

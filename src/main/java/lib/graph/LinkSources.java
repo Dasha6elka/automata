@@ -18,7 +18,7 @@ public class LinkSources {
         for (MooreEdge mooreEdge : mooreEdges) {
             Label label = Label.of(mooreEdge.x);
             Node from = node(mooreEdge.from.q).with("xlabel", mooreEdge.from.y);
-            Node to = node(mooreEdge.to.q).with("xlabel", mooreEdge.to.y);
+            Node to = node(mooreEdge.to.q);
             sources.add(from.link(to(to).with(label)));
         }
         return sources;

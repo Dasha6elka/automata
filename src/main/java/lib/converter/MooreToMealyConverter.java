@@ -30,7 +30,7 @@ public class MooreToMealyConverter {
 
             String y = scanner.next();
 
-            mooreNode.q = "q" + i;
+            mooreNode.q = "s" + i;
             mooreNode.y = y;
 
             mooreNodes.add(mooreNode);
@@ -66,7 +66,7 @@ public class MooreToMealyConverter {
             .findFirst();
 
         if (to.isEmpty()) {
-            throw new IOException("Node " + " to not found");
+            throw new IOException("Node " + q + " not found");
         }
         return to.get();
     }

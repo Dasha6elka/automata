@@ -1,4 +1,4 @@
-# Automata Theory labs
+# automata
 
 ![GitHub top language](https://img.shields.io/github/languages/top/Dasha6elka/automata.svg)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Dasha6elka/automata.svg)
